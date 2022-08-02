@@ -12,16 +12,15 @@ import mal.types.MalType;
 
 public class reader{
 
-    private reader(){}
+    private reader(){ throw new RuntimeException("not supposed to be instansiated"); }
 
     public static MalType read_str(String input){
-        reader r = new reader();
-        String[] tokens = r.tokenize(input);
+        String[] tokens = tokenize(input);
         Reader reader = new Reader(tokens, 0); 
-        return r.read_form(reader);
+        return read_form(reader);
     }
 
-    private String[] tokenize(String input){
+    public static String[] tokenize(String input){
         List<String> tokens = new LinkedList<>();
         Pattern pattern = Pattern.compile("[\\s,]*(~@|[\\[\\]{}()'`~@]|\"(?:[\\\\].|[^\\\\\"])*\"?|;.*|[^\\s \\[\\]{}()'\"`~@,;]*)");
         Matcher matcher = pattern.matcher(input);
@@ -34,7 +33,7 @@ public class reader{
         return tokens.toArray(new String[0]);
     }
 
-    private MalType read_form(Reader rdr){
+    public static MalType read_form(Reader rdr){
         char firstChar = rdr.peek().charAt(0);
         MalType form;
         if(firstChar == '(')
@@ -44,7 +43,7 @@ public class reader{
         return form;
     }
 
-    private MalType read_list(Reader rdr){
+    public static MalType read_list(Reader rdr){
         MalList list = new MalList();
 
         while(rdr.hasNext()){
@@ -62,7 +61,7 @@ public class reader{
         return list;
     }
 
-    private MalType read_atom(Reader rdr){
+    public static MalType read_atom(Reader rdr){
         String token = rdr.peek();
         Pattern pattern = Pattern.compile("(^-?[0-9]+$)|(^-?[0-9][0-9.]*$)|(^nil$)|(^true$)|(^false$)|^\"((?:[\\\\].|[^\\\\\"])*)\"$|^\"(.*)$|:(.*)|(^[^\"]*$)");
         Matcher matcher = pattern.matcher(token);
