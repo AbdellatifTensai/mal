@@ -1,14 +1,7 @@
 package mal;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedList;
-import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.BinaryOperator;
 import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.stream.Collector;
 
 public class types {
 
@@ -16,9 +9,16 @@ public class types {
     public static final MalConst True  = new MalConst("True");
     public static final MalConst False = new MalConst("False");
 
-    public static interface MalType{}
+    public static interface MalType{
+        default boolean list_Q()  { return false;}
+        default boolean symbol_Q(){ return false;}
+        default LinkedList<MalType> getMalTypes(){ throw new RuntimeException("only MalList can implement this");    }
+        default MalSymbol getMalSymbol()         { throw new RuntimeException("only MalSymbol can implement this");  }
+        default MalFunction getMalFunction()     { throw new RuntimeException("only MalFunction can implement this");}
+        default String getString()               { throw new RuntimeException("only MalString can implement this");  }
+    }
 
-    public static class MalList implements MalType, Collector<MalType,LinkedList<MalType>,MalList>{
+    public static class MalList implements MalType{
         LinkedList<MalType> malTypes;
 
         public MalList() {
@@ -33,30 +33,16 @@ public class types {
             return this;
         }
 
-        MalType mutate(Function<MalType,MalType> f){
-            return malTypes.stream().map(f).collect(this);
-        }
-
-        boolean isEmpty(){
-            return malTypes.isEmpty();
-        }
+        MalType getFirst(){ return malTypes.getFirst(); }
+        MalType getSecond(){ return malTypes.get(1); }
+        boolean isEmpty(){ return malTypes.isEmpty(); }
 
         @Override
-        public String toString() {
-            return Arrays.toString(malTypes.toArray());
-        }
-
+        public LinkedList<MalType> getMalTypes(){ return malTypes; }
         @Override
-        public Supplier<LinkedList<MalType>> supplier(){ return LinkedList::new; }
+        public boolean list_Q(){ return true; }
         @Override
-        public BiConsumer<LinkedList<MalType>, MalType> accumulator(){ return LinkedList::add; }
-        @Override
-        public BinaryOperator<LinkedList<MalType>> combiner(){ return (l1,l2) -> {l1.addAll(l2); return l1;}; }
-        @Override
-        public Function<LinkedList<MalType>, MalList> finisher(){ return (i)->new MalList(i); }
-        @Override
-        public Set<Characteristics> characteristics(){ return Collections.emptySet(); }
-
+        public String toString(){ return Arrays.toString(malTypes.toArray()); }
 
     }
 
@@ -64,10 +50,10 @@ public class types {
         int val;
         public MalInteger(int malInt) { this.val = malInt; }
 
-        public MalInteger add(MalInteger malInt){ this.val += malInt.val; return this; }
-        public MalInteger sub(MalInteger malInt){ this.val -= malInt.val; return this; }
-        public MalInteger mul(MalInteger malInt){ this.val *= malInt.val; return this; }
-        public MalInteger div(MalInteger malInt){ this.val /= malInt.val; return this; }
+        public static MalInteger add(MalInteger... malInt){ return new MalInteger(malInt[0].val + malInt[1].val); }
+        public static MalInteger sub(MalInteger... malInt){ return new MalInteger(malInt[0].val - malInt[1].val); }
+        public static MalInteger div(MalInteger... malInt){ return new MalInteger(malInt[0].val / malInt[1].val); }
+        public static MalInteger mul(MalInteger... malInt){ return new MalInteger(malInt[0].val * malInt[1].val); }
 
         @Override
         public String toString() { return "(" + val + ")"; }
@@ -85,6 +71,8 @@ public class types {
         public MalString(String malString){ this.val = malString; }
         @Override
         public String toString(){ return "(" + val + ")"; }
+        @Override
+        public String getString(){ return val; }
     }
 
     public static class MalSymbol implements MalType{
@@ -92,6 +80,10 @@ public class types {
         public MalSymbol(String malSymbol) { this.val = malSymbol; }
         @Override
         public String toString() { return "("+val+")"; }
+        @Override
+        public boolean symbol_Q() { return true; }
+        @Override
+        public MalSymbol getMalSymbol() { return this; }
     }
 
     public static class MalFunction implements MalType{
@@ -100,6 +92,10 @@ public class types {
         public MalFunction(Function<MalList, MalType> malFunction) {
             this.malFunction = malFunction;
         }
-
+        public MalType apply(MalList t){
+            return malFunction.apply(t);
+        }
+        @Override
+        public MalFunction getMalFunction(){ return this; }
     }
 }

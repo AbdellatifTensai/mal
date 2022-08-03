@@ -6,7 +6,6 @@ import java.util.Scanner;
 import mal.types.MalFunction;
 import mal.types.MalInteger;
 import mal.types.MalList;
-import mal.types.MalSymbol;
 import mal.types.MalType;
 
 class step2_eval{
@@ -16,10 +15,10 @@ class step2_eval{
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         eval_env = new HashMap<>();
-        eval_env.put("+", new MalFunction(a -> ((MalInteger)a.malTypes.getFirst()).add((MalInteger)a.malTypes.get(1))));
-        eval_env.put("-", new MalFunction(a -> ((MalInteger)a.malTypes.getFirst()).sub((MalInteger)a.malTypes.get(1))));
-        eval_env.put("*", new MalFunction(a -> ((MalInteger)a.malTypes.getFirst()).mul((MalInteger)a.malTypes.get(1))));
-        eval_env.put("/", new MalFunction(a -> ((MalInteger)a.malTypes.getFirst()).div((MalInteger)a.malTypes.get(1))));
+        eval_env.put("+", new MalFunction(a ->MalInteger.add((MalInteger)a.getSecond(),(MalInteger)a.getFirst())));
+        eval_env.put("-", new MalFunction(a ->MalInteger.add((MalInteger)a.getSecond(),(MalInteger)a.getFirst())));
+        eval_env.put("*", new MalFunction(a ->MalInteger.add((MalInteger)a.getSecond(),(MalInteger)a.getFirst())));
+        eval_env.put("/", new MalFunction(a ->MalInteger.add((MalInteger)a.getSecond(),(MalInteger)a.getFirst())));
         
         while(true){
             System.out.print("user> ");
@@ -28,41 +27,40 @@ class step2_eval{
             if(input.equals("exit")){ scanner.close(); break; }
 
             System.out.println(
-                repl(input,eval_env)
+                repl(input)
             );
         }
     }
 
-    private static String repl(String input, Map env){
+    private static String repl(String input){
         return PRINT(EVAL(READ(input)));
     }
 
     private static MalType eval_ast(MalType ast){
-        if(ast instanceof MalList){
-            MalList old_ast = (MalList) ast;
-            return old_ast.mutate(step2_eval::EVAL);
+        if(ast.list_Q()){
+            ast.getMalTypes().forEach(step2_eval::EVAL);
+            return ast;
         }
-        else if(ast instanceof MalSymbol){
-            MalSymbol symbol = (MalSymbol) ast;
-            return eval_env.get(symbol.val);
+        else if(ast.symbol_Q()){
+            return eval_env.get(ast.getMalSymbol().val);
         }
         return ast;
     }
 
     private static MalType READ(String input){
-        return reader.read_str(input);
+        MalType output = reader.read_str(input);
+        System.out.println(output);
+        return output;
     }
+
     private static MalType EVAL(MalType ast){
-        if(ast instanceof MalList){
-            MalList old_ast = (MalList) ast;
-            if(old_ast.isEmpty()) return ast;
+        if(ast.list_Q()){
+            if(ast.getMalTypes().isEmpty()) return ast;
 
-            MalType head = old_ast.malTypes.poll();
-            if(!(head instanceof MalSymbol)) throw new RuntimeException("something is wrong!");
-
-            MalSymbol fSymbol = (MalSymbol) head;
-            MalType args = eval_ast(old_ast);
-            MalFunction f = eval_env.get(fSymbol.val);
+            MalType head = ast.getMalTypes().poll();
+            if(!head.symbol_Q()) throw new RuntimeException("something is wrong!");
+            MalType args = eval_ast(ast);
+            MalFunction f = eval_env.get(head.getMalSymbol().val);
 
             return f.malFunction.apply((MalList)args);
 
