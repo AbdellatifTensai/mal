@@ -56,7 +56,7 @@ public class reader{
                 break;
 
             else
-                list.addAll(read_form(rdr));
+                list.add(read_form(rdr));
         }
         return list;
     }
@@ -69,9 +69,9 @@ public class reader{
 
         if(!matcher.find()) throw new RuntimeException("unrecognized token '"+token+"'");
         if((newToken=matcher.group(1)) != null) return new MalInteger(Integer.parseInt(newToken));
-        else if(matcher.group(3) != null) return types.Nil;
-        else if(matcher.group(4) != null) return types.True;
-        else if(matcher.group(5) != null) return types.False;
+        else if(matcher.group(3) != null) return core.Nil;
+        else if(matcher.group(4) != null) return core.True;
+        else if(matcher.group(5) != null) return core.False;
         else if((newToken = matcher.group(6)) != null) return new MalString(newToken);
         else if(matcher.group(7) != null) throw new RuntimeException("expected '\"', got EOF");
         else if((newToken=matcher.group(8)) != null) return new MalString("\u029e"+newToken);

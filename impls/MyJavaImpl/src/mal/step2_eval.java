@@ -15,10 +15,10 @@ class step2_eval{
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         eval_env = new HashMap<>();
-        eval_env.put("+", new MalFunction(a ->MalInteger.add((MalInteger)a.getSecond(),(MalInteger)a.getFirst())));
-        eval_env.put("-", new MalFunction(a ->MalInteger.add((MalInteger)a.getSecond(),(MalInteger)a.getFirst())));
-        eval_env.put("*", new MalFunction(a ->MalInteger.add((MalInteger)a.getSecond(),(MalInteger)a.getFirst())));
-        eval_env.put("/", new MalFunction(a ->MalInteger.add((MalInteger)a.getSecond(),(MalInteger)a.getFirst())));
+        eval_env.put("+", a ->new MalInteger(a.get(0).getInteger() + a.get(1).getInteger()));
+        eval_env.put("-", a ->new MalInteger(a.get(0).getInteger() - a.get(1).getInteger()));
+        eval_env.put("*", a ->new MalInteger(a.get(0).getInteger() * a.get(1).getInteger()));
+        eval_env.put("/", a ->new MalInteger(a.get(0).getInteger() / a.get(1).getInteger()));
         
         while(true){
             System.out.print("user> ");
@@ -38,7 +38,7 @@ class step2_eval{
 
     private static MalType eval_ast(MalType ast){
         if(ast.list_Q()){
-            ast.getMalTypes().forEach(step2_eval::EVAL);
+            ast.getMalList().map(step2_eval::EVAL);
             return ast;
         }
         else if(ast.symbol_Q()){
@@ -55,14 +55,14 @@ class step2_eval{
 
     private static MalType EVAL(MalType ast){
         if(ast.list_Q()){
-            if(ast.getMalTypes().isEmpty()) return ast;
+            if(ast.getMalList().isEmpty()) return ast;
 
-            MalType head = ast.getMalTypes().poll();
+            MalType head = ast.getMalList().remove(0);
             if(!head.symbol_Q()) throw new RuntimeException("something is wrong!");
             MalType args = eval_ast(ast);
             MalFunction f = eval_env.get(head.getMalSymbol().val);
 
-            return f.malFunction.apply((MalList)args);
+            return f.apply((MalList)args);
 
         }else{
             return eval_ast(ast);

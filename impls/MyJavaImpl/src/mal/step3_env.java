@@ -1,11 +1,11 @@
 package mal;
-import java.util.LinkedList;
 import java.util.Scanner;
 
 import mal.env.Env;
 import mal.types.MalFunction;
 import mal.types.MalInteger;
 import mal.types.MalList;
+import mal.types.MalSymbol;
 import mal.types.MalType;
 
 class step3_env{
@@ -13,10 +13,14 @@ class step3_env{
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         Env eval_env = new Env(null);
-        eval_env.set("+", new MalFunction(a -> MalInteger.add((MalInteger)a.getSecond(),(MalInteger)a.getFirst())));
-        eval_env.set("-", new MalFunction(a -> MalInteger.sub((MalInteger)a.getSecond(),(MalInteger)a.getFirst())));
-        eval_env.set("*", new MalFunction(a -> MalInteger.mul((MalInteger)a.getSecond(),(MalInteger)a.getFirst())));
-        eval_env.set("/", new MalFunction(a -> MalInteger.div((MalInteger)a.getSecond(),(MalInteger)a.getFirst())));
+        MalFunction add = a -> new MalInteger(a.getMalList().get(0).getInteger() + a.getMalList().get(1).getInteger());
+        MalFunction sub = a -> new MalInteger(a.getMalList().get(0).getInteger() - a.getMalList().get(1).getInteger());
+        MalFunction mul = a -> new MalInteger(a.getMalList().get(0).getInteger() * a.getMalList().get(1).getInteger());
+        MalFunction div = a -> new MalInteger(a.getMalList().get(0).getInteger() / a.getMalList().get(1).getInteger()); 
+        eval_env.set(new MalSymbol("+"), add); 
+        eval_env.set(new MalSymbol("-"), sub);
+        eval_env.set(new MalSymbol("*"), mul);
+        eval_env.set(new MalSymbol("/"), div);
         
         while(true){
             System.out.print("user> ");
@@ -36,11 +40,11 @@ class step3_env{
 
     private static MalType eval_ast(MalType ast, Env env){
         if(ast.list_Q()){
-            ast.getMalTypes().replaceAll(x->EVAL(x, env));
+            ast.getMalList().map(x->EVAL(x, env));
             return ast;
         }
         else if(ast.symbol_Q()){
-            return env.get(ast.getMalSymbol().val);
+            return env.get(ast.getMalSymbol());
         }
         return ast;
     }
@@ -53,24 +57,24 @@ class step3_env{
 
     private static MalType EVAL(MalType ast, Env env){
         if(!ast.list_Q()) return eval_ast(ast, env);
-        if(ast.getMalTypes().isEmpty()) return ast;
+        if(ast.getMalList().isEmpty()) return ast;
 
-        String head = ast.getMalTypes().poll().getMalSymbol().val; 
+        MalSymbol head = ast.getMalList().get(0).getMalSymbol(); 
         
-        switch(head){
+        switch(head.val){
             case "def!": 
-                String def_first_arg = ast.getMalTypes().getFirst().getMalSymbol().val;
-                MalType def_second_eval_arg = EVAL(ast.getMalTypes().getLast(),env);
+                MalSymbol def_first_arg = ast.getMalList().get(1).getMalSymbol();
+                MalType def_second_eval_arg = EVAL(ast.getMalList().get(2),env);
                 env.set(def_first_arg, def_second_eval_arg);
 
                 return def_second_eval_arg;
 
             case "let*": // (let* [c 2] c) -> set(c,2), return eval(c) a.k.a: list<symbol, list<symbol, int>, symbol>
-                Env let_env = new Env(env);
-                LinkedList<MalType> let_first_arg = ast.getMalTypes().getFirst().getMalTypes();
-                MalType let_second_arg = ast.getMalTypes().getLast();
+                Env let_env = new Env(env,null,null);
+                MalList let_first_arg = ast.getMalList().get(1).getMalList();
+                MalType let_second_arg = ast.getMalList().get(2);
 
-                let_env.set(let_first_arg.getFirst().getMalSymbol().val, EVAL(let_first_arg.getLast(), let_env));
+                let_env.set(let_first_arg.get(0).getMalSymbol(), EVAL(let_first_arg.get(1), let_env));
                 return EVAL(let_second_arg, let_env);
 
             default:
