@@ -3,14 +3,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
-import mal.types.MalFunction;
+import mal.types.IMalFunction;
 import mal.types.MalInteger;
 import mal.types.MalList;
 import mal.types.MalType;
 
 class step2_eval{
 
-    public static Map<String,MalFunction> eval_env; 
+    public static Map<String,IMalFunction> eval_env; 
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -60,7 +60,7 @@ class step2_eval{
             MalType head = ast.getMalList().remove(0);
             if(!head.symbol_Q()) throw new RuntimeException("something is wrong!");
             MalType args = eval_ast(ast);
-            MalFunction f = eval_env.get(head.getMalSymbol().val);
+            IMalFunction f = eval_env.get(head.getMalSymbol().val);
 
             return f.apply((MalList)args);
 

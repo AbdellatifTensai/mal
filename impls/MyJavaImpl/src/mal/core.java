@@ -3,8 +3,8 @@ package mal;
 import java.util.HashMap;
 import java.util.Map;
 
+import mal.types.IMalFunction;
 import mal.types.MalConst;
-import mal.types.MalFunction;
 import mal.types.MalInteger;
 import mal.types.MalSymbol;
 import mal.types.MalType;
@@ -14,7 +14,7 @@ public class core {
     public static final MalConst True  = new MalConst("True");
     public static final MalConst False = new MalConst("False");
 
-    public static final Map<MalType,MalFunction> NS = new HashMap<>();
+    public static final Map<MalType,IMalFunction> NS = new HashMap<>();
     static{
         NS.put(new MalSymbol("+"),      args -> new MalInteger(args.getMalList().get(0).getInteger() + args.getMalList().get(1).getInteger())); 
         NS.put(new MalSymbol("-"),      args -> new MalInteger(args.getMalList().get(0).getInteger() - args.getMalList().get(1).getInteger()));

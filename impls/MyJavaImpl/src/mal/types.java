@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.UnaryOperator;
 
+import mal.env.Env;
+
 public class types {
 
     public static interface MalType{
@@ -11,9 +13,10 @@ public class types {
         default boolean symbol_Q()           { return false;}
         default MalList getMalList()         { throw new RuntimeException("only MalList can implement this");    }
         default MalSymbol getMalSymbol()     { throw new RuntimeException("only MalSymbol can implement this");  }
-        default MalFunction getMalFunction() { throw new RuntimeException("only MalFunction can implement this");}
+        default IMalFunction getMalFunction(){ throw new RuntimeException("only MalFunction can implement this");}
         default String getString()           { throw new RuntimeException("only MalString can implement this");  }
         default int getInteger()             { throw new RuntimeException("only MalInteger can implement this"); }
+        default MalFunction getMalFunctionImpl(){ throw new RuntimeException("only THE MalFunction implementation of IMalFunction can call this");}
     }
 
     public static class MalList implements MalType{
@@ -28,13 +31,14 @@ public class types {
             catch(IndexOutOfBoundsException e){ m = core.Nil;}
             return m;
         }
-        MalType remove(int i){ return malTypes.remove(i); }
-        boolean isEmpty(){ return malTypes.isEmpty(); }
-        MalList add(MalType m){ malTypes.add(m); return this;}
-        MalList map(UnaryOperator<MalType> u){ malTypes.replaceAll(u); return this;}
-        int size(){ return malTypes.size();}
-        MalList tail(){ malTypes.remove(0); return this;}
-        MalType getLast(){ return malTypes.get(malTypes.size() - 1); }
+        MalType remove(int i)                   { return malTypes.remove(i); }
+        boolean isEmpty()                       { return malTypes.isEmpty(); }
+        MalList add(MalType m)                  { malTypes.add(m); return this;}
+        MalList map(UnaryOperator<MalType> u)   { malTypes.replaceAll(u); return this;}
+        int     size()                          { return malTypes.size();}
+        MalList subList(int a, int z)           { return new MalList(malTypes.subList(a, z));}
+        MalType getLast()                       { return malTypes.get(malTypes.size() - 1); }
+        MalList rest()                          { return new MalList(malTypes.subList(1, malTypes.size()));}
 
         @Override
         public MalList getMalList(){ return this; }
@@ -129,10 +133,25 @@ public class types {
         }
     }
 
-    public static interface MalFunction extends MalType{
+    public static interface IMalFunction extends MalType{
+        MalType apply(MalList arguments);
+        @Override
+        default IMalFunction getMalFunction(){ return this; }
+        
+    }
+    abstract public static class MalFunction implements IMalFunction{
+        MalType params;
+        MalType body;
+        Env env;
 
-        MalType apply(MalList t);
-
-        default public MalFunction getMalFunction(){ return this; }
+        public MalFunction(MalList ast, Env env){
+            this.params = ast.get(1);
+            this.body = ast.get(2);
+            this.env = env;
+        }
+        @Override
+        public MalFunction getMalFunctionImpl(){ return this; }
+        @Override
+        public String toString(){ return body + "::" + env + "::" + params; }
     }
 }

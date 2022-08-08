@@ -3,11 +3,12 @@ import java.util.Scanner;
 
 import mal.env.Env;
 import mal.types.IMalFunction;
+import mal.types.MalFunction;
 import mal.types.MalList;
 import mal.types.MalSymbol;
 import mal.types.MalType;
 
-class step4_if_fn_do{
+class step5_tco{
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
@@ -51,6 +52,7 @@ class step4_if_fn_do{
     }
 
     private static MalType EVAL(MalType ast, Env env){
+        while(true){
         if(!ast.list_Q()) return eval_ast(ast, env);
         if(ast.getMalList().isEmpty()) return ast;
 
@@ -63,32 +65,43 @@ class step4_if_fn_do{
                 env.set(def_first_arg, def_second_eval_arg);
                 return def_second_eval_arg;
 
-            case "let*": // (let* [c 2] c) -> set(c,2), return eval(c) a.k.a: list<symbol, list<symbol, int>, symbol>
+            case "let*": // (let* [c 2] c)
                 Env let_env = new Env(env);
                 MalList let_first_args = ast.getMalList().get(1).getMalList();
                 MalType let_second_arg = ast.getMalList().get(2);
                 let_env.set(let_first_args.get(0).getMalSymbol(), EVAL(let_first_args.get(1), let_env));
-                return EVAL(let_second_arg, let_env);
+                ast = let_second_arg;
+                env = let_env;
+                break;
 
-            case "do": //( do a b c d ) :: list< 1:do, 2:list<args>, 3:last_arg >
-                return eval_ast(ast.getMalList().subList(1, ast.getMalList().size()-1), env).getMalList().getLast();
+            case "do": //( do a b c d )
+                MalList do_args = ast.getMalList().subList(1, ast.getMalList().size()-2);
+                MalType do_last_arg = ast.getMalList().getLast();
+                eval_ast(do_args, env);
+                ast = do_last_arg;
+                break;
             
             case "if": // (if a b c)
-                return EVAL(EVAL(ast.getMalList().get(1), env).equals(core.True) ?
-                                 ast.getMalList().get(2):
-                                 ast.getMalList().get(3),env);
-            
+                if(EVAL(ast.getMalList().get(1), env).equals(core.True)) ast = ast.getMalList().get(2);
+                else ast = ast.getMalList().get(3);
+                break;
+                            
             case "fn*": // ((fn* (a b) (a b)) c1 c2) -> [(parameters)(body)]{arguments} 
-                return new IMalFunction(){
-                    @Override public MalType apply(MalList t) {
-                        Env fn_env = new Env(env, ast.getMalList().get(1).getMalList(), t);
-                        return EVAL(ast.getMalList().get(2), fn_env);
-                    }};
-                                       
+                return new MalFunction(ast.getMalList(), env){
+                    @Override public MalType apply(MalList arguments){
+                        return EVAL(this.body, new Env(this.env, this.params.getMalList(), arguments));
+                    }
+                };
+
             default:
                 MalType args = eval_ast(ast, env);
                 IMalFunction f = args.getMalList().get(0).getMalFunction();
-                return f.apply(((MalList)args).rest());
+                if(f instanceof MalFunction){
+                    ast = f.getMalFunctionImpl().body;                    
+                    env = new Env(f.getMalFunctionImpl().env, f.getMalFunctionImpl().params.getMalList(), args.getMalList().rest());
+                }
+                else return f.apply(((MalList)args).rest());
+        }
         }
     }
 

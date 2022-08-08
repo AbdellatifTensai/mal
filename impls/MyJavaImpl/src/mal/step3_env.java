@@ -2,7 +2,7 @@ package mal;
 import java.util.Scanner;
 
 import mal.env.Env;
-import mal.types.MalFunction;
+import mal.types.IMalFunction;
 import mal.types.MalInteger;
 import mal.types.MalList;
 import mal.types.MalSymbol;
@@ -13,10 +13,10 @@ class step3_env{
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         Env eval_env = new Env(null);
-        MalFunction add = a -> new MalInteger(a.getMalList().get(0).getInteger() + a.getMalList().get(1).getInteger());
-        MalFunction sub = a -> new MalInteger(a.getMalList().get(0).getInteger() - a.getMalList().get(1).getInteger());
-        MalFunction mul = a -> new MalInteger(a.getMalList().get(0).getInteger() * a.getMalList().get(1).getInteger());
-        MalFunction div = a -> new MalInteger(a.getMalList().get(0).getInteger() / a.getMalList().get(1).getInteger()); 
+        IMalFunction add = a -> new MalInteger(a.getMalList().get(0).getInteger() + a.getMalList().get(1).getInteger());
+        IMalFunction sub = a -> new MalInteger(a.getMalList().get(0).getInteger() - a.getMalList().get(1).getInteger());
+        IMalFunction mul = a -> new MalInteger(a.getMalList().get(0).getInteger() * a.getMalList().get(1).getInteger());
+        IMalFunction div = a -> new MalInteger(a.getMalList().get(0).getInteger() / a.getMalList().get(1).getInteger()); 
         eval_env.set(new MalSymbol("+"), add); 
         eval_env.set(new MalSymbol("-"), sub);
         eval_env.set(new MalSymbol("*"), mul);
@@ -79,7 +79,7 @@ class step3_env{
 
             default:
                 MalType args = eval_ast(ast, env);
-                MalFunction f = env.get(head).getMalFunction();
+                IMalFunction f = env.get(head).getMalFunction();
                 return f.apply((MalList)args);
         }
     }

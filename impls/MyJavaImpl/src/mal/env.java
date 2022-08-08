@@ -3,7 +3,7 @@ package mal;
 import java.util.HashMap;
 import java.util.Map;
 
-import mal.types.MalFunction;
+import mal.types.IMalFunction;
 import mal.types.MalList;
 import mal.types.MalType;
 
@@ -24,7 +24,7 @@ public class env {
             this.data = new HashMap<>();
         }
 
-        public Env(Env outer, Map<MalType,MalFunction> data){
+        public Env(Env outer, Map<MalType,IMalFunction> data){
             this.outer = outer;
             this.data = new HashMap<>(data);
         }
