@@ -56,7 +56,7 @@ class step4_if_fn_do{
 
         MalType head = ast.getMalList().get(0);
 
-        switch(head.symbol_Q()? head.getMalSymbol().val: "fn*"){
+        switch(head.symbol_Q()? head.getMalSymbol().val: ""){
             case "def!": // (def! a b)
                 MalSymbol def_first_arg = ast.getMalList().get(1).getMalSymbol();
                 MalType def_second_eval_arg = EVAL(ast.getMalList().get(2), env);
@@ -78,7 +78,7 @@ class step4_if_fn_do{
                                  ast.getMalList().get(2):
                                  ast.getMalList().get(3),env);
             
-            case "fn*": // (fn* (a b) (a b) c)
+            case "fn*": // ((fn* (a b) (a b)) c1 c2) -> [(parameters)(body)]{arguments} 
                 return new MalFunction(){
                     @Override public MalType apply(MalList t) {
                         Env fn_env = new Env(env, ast.getMalList().get(1).getMalList(), t);

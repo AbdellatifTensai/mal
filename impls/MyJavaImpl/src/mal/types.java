@@ -25,7 +25,7 @@ public class types {
         MalType get(int i){
             MalType m;
             try{ m = malTypes.get(i); }
-            catch(IndexOutOfBoundsException e){ m = null;}
+            catch(IndexOutOfBoundsException e){ m = core.Nil;}
             return m;
         }
         MalType remove(int i){ return malTypes.remove(i); }
