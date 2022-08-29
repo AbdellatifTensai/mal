@@ -1,4 +1,7 @@
 package mal;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Scanner;
 
 import mal.env.Env;
@@ -10,10 +13,12 @@ import mal.types.MalType;
 
 class step5_tco{
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException{
         Scanner scanner = new Scanner(System.in);
         Env eval_env = new Env(null, core.NS);
-        
+
+        Files.lines(Paths.get(System.getProperty("user.dir"),"/impls/MyJavaImpl/src/mal/core.mal")).forEach(x->repl(x, eval_env));
+
         while(true){
             System.out.print("user> ");
 
@@ -36,8 +41,11 @@ class step5_tco{
     }
 
     private static MalType eval_ast(MalType ast, Env env){
-        if(ast.list_Q())
-            return ast.getMalList().map(x->EVAL(x, env));
+        if(ast.list_Q()){
+            MalList list = new MalList();
+            ast.getMalList().malTypes.forEach(x -> list.add(EVAL(x, env)));
+            return list;
+        }
 
         else if(ast.symbol_Q())
             return env.get(ast.getMalSymbol());
@@ -82,8 +90,12 @@ class step5_tco{
                 break;
             
             case "if": // (if a b c)
-                if(EVAL(ast.getMalList().get(1), env).equals(core.True)) ast = ast.getMalList().get(2);
-                else ast = ast.getMalList().get(3);
+                if(EVAL(ast.getMalList().get(1), env).equals(core.True)){
+                    ast = ast.getMalList().get(2);
+                }
+                else{
+                    ast = ast.getMalList().get(3);
+                }
                 break;
                             
             case "fn*": // ((fn* (a b) (a b)) c1 c2) -> [(parameters)(body)]{arguments} 
@@ -100,7 +112,10 @@ class step5_tco{
                     ast = f.getMalFunctionImpl().body;                    
                     env = new Env(f.getMalFunctionImpl().env, f.getMalFunctionImpl().params.getMalList(), args.getMalList().rest());
                 }
-                else return f.apply(((MalList)args).rest());
+                else {
+                    MalType result = f.apply(((MalList)args).rest()); 
+                    return result; 
+                }
         }
         }
     }

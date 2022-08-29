@@ -2,7 +2,6 @@ package mal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.UnaryOperator;
 
 import mal.env.Env;
 
@@ -24,6 +23,7 @@ public class types {
 
         public MalList(){ this.malTypes = new ArrayList<>(); }
         public MalList(List<MalType> list){ this.malTypes = list; }
+        public MalList(MalList list){ this.malTypes = list.malTypes; }
 
         MalType get(int i){
             MalType m;
@@ -34,7 +34,6 @@ public class types {
         MalType remove(int i)                   { return malTypes.remove(i); }
         boolean isEmpty()                       { return malTypes.isEmpty(); }
         MalList add(MalType m)                  { malTypes.add(m); return this;}
-        MalList map(UnaryOperator<MalType> u)   { malTypes.replaceAll(u); return this;}
         int     size()                          { return malTypes.size();}
         MalList subList(int a, int z)           { return new MalList(malTypes.subList(a, z));}
         MalType getLast()                       { return malTypes.get(malTypes.size() - 1); }
@@ -62,11 +61,6 @@ public class types {
     public static class MalInteger implements MalType{
         int val;
         public MalInteger(int malInt) { this.val = malInt; }
-
-        public static MalInteger add(MalInteger... malInt){ return new MalInteger(malInt[0].val + malInt[1].val); }
-        public static MalInteger sub(MalInteger... malInt){ return new MalInteger(malInt[0].val - malInt[1].val); }
-        public static MalInteger div(MalInteger... malInt){ return new MalInteger(malInt[0].val / malInt[1].val); }
-        public static MalInteger mul(MalInteger... malInt){ return new MalInteger(malInt[0].val * malInt[1].val); }
 
         @Override
         public String toString() { return "(" + val + ")"; }
@@ -137,8 +131,8 @@ public class types {
         MalType apply(MalList arguments);
         @Override
         default IMalFunction getMalFunction(){ return this; }
-        
     }
+
     abstract public static class MalFunction implements IMalFunction{
         MalType params;
         MalType body;
@@ -152,6 +146,6 @@ public class types {
         @Override
         public MalFunction getMalFunctionImpl(){ return this; }
         @Override
-        public String toString(){ return body + "::" + env + "::" + params; }
+        public String toString(){ return "MalFunction"; }
     }
 }

@@ -25,7 +25,7 @@ public class core {
         NS.put(new MalSymbol("list?"),  args -> args.get(0).list_Q()? True: False                                                            );
         NS.put(new MalSymbol("empty?"), args -> args.getMalList().isEmpty()? True: False                                                     );
         NS.put(new MalSymbol("count"),  args -> new MalInteger(args.get(0).getMalList().size())                                              );
-        NS.put(new MalSymbol("equal"),  args -> args.get(0).equals(args.get(1))? True: False                                                 );
+        NS.put(new MalSymbol("="),      args -> args.get(0).equals(args.get(1))? True: False                                                 );
         NS.put(new MalSymbol("<"),      args -> args.get(0).getInteger() < args.get(1).getInteger()? True: False                             );
         NS.put(new MalSymbol(">"),      args -> args.get(0).getInteger() > args.get(1).getInteger()? True: False                             );
         NS.put(new MalSymbol("<="),     args -> args.get(0).getInteger() <= args.get(1).getInteger()? True: False                            );

@@ -44,5 +44,7 @@ public class env {
             if(!temp.equals(null)) return temp.data.get(key);
             throw new RuntimeException("the key '"+key+"' was not found!");
         }
+
+        @Override public String toString(){ return "Env"; }
     }
 }

@@ -40,8 +40,9 @@ class step3_env{
 
     private static MalType eval_ast(MalType ast, Env env){
         if(ast.list_Q()){
-            ast.getMalList().map(x->EVAL(x, env));
-            return ast;
+            MalList list = new MalList();
+            ast.getMalList().malTypes.forEach(x->list.add(EVAL(x, env)));
+            return list;
         }
         else if(ast.symbol_Q()){
             return env.get(ast.getMalSymbol());

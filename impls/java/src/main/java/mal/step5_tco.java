@@ -1,17 +1,17 @@
 package mal;
 
 import java.io.IOException;
-
 import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Iterator;
-import mal.types.*;
-import mal.readline;
-import mal.reader;
-import mal.printer;
+import java.util.Scanner;
+
 import mal.env.Env;
-import mal.core;
+import mal.types.MalContinue;
+import mal.types.MalFunction;
+import mal.types.MalList;
+import mal.types.MalSymbol;
+import mal.types.MalThrowable;
+import mal.types.MalVal;
+import mal.types.MalVector;
 
 public class step5_tco {
     // read
@@ -31,14 +31,14 @@ public class step5_tco {
                 new_lst.conj_BANG(EVAL(mv, env));
             }
             return new_lst;
-        } else if (ast instanceof MalHashMap) {
-            MalHashMap new_hm = new MalHashMap();
-            Iterator it = ((MalHashMap)ast).value.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry entry = (Map.Entry)it.next();
-                new_hm.value.put(entry.getKey(), EVAL((MalVal)entry.getValue(), env));
-            }
-            return new_hm;
+        // } else if (ast instanceof MalHashMap) {
+        //     MalHashMap new_hm = new MalHashMap();
+        //     Iterator it = ((MalHashMap)ast).value.entrySet().iterator();
+        //     while (it.hasNext()) {
+        //         Map.Entry entry = (Map.Entry)it.next();
+        //         new_hm.value.put(entry.getKey(), EVAL((MalVal)entry.getValue(), env));
+        //     }
+        //     return new_hm;
         } else {
             return ast;
         }
@@ -136,7 +136,7 @@ public class step5_tco {
     }
 
     public static void main(String[] args) throws MalThrowable {
-        String prompt = "user> ";
+        final String PROMPT = "user> ";
 
         Env repl_env = new Env(null);
 
@@ -147,32 +147,45 @@ public class step5_tco {
 
         // core.mal: defined using the language itself
         RE(repl_env, "(def! not (fn* (a) (if a false true)))");
+
+
+        RE(repl_env, "(def! sum2 (fn* (n acc) (if (= n 0) acc (sum2 (- n 1) (+ n acc)))))");
         
-        if (args.length > 0 && args[0].equals("--raw")) {
-            readline.mode = readline.Mode.JAVA;
-        }
+        // if (args.length > 0 && args[0].equals("--raw")) {
+        //     readline.mode = readline.Mode.JAVA;
+        // }
+        Scanner scanner = new Scanner(System.in);
         while (true) {
-            String line;
-            try {
-                line = readline.readline(prompt);
-                if (line == null) { continue; }
-            } catch (readline.EOFException e) {
-                break;
-            } catch (IOException e) {
-                System.out.println("IOException: " + e.getMessage());
-                break;
-            }
-            try {
-                System.out.println(PRINT(RE(repl_env, line)));
-            } catch (MalContinue e) {
-                continue;
-            } catch (MalThrowable t) {
-                System.out.println("Error: " + t.getMessage());
-                continue;
-            } catch (Throwable t) {
-                System.out.println("Uncaught " + t + ": " + t.getMessage());
-                continue;
-            }
+            System.out.print(PROMPT);
+
+            String input = scanner.nextLine();
+            if(input.equals("exit")){ scanner.close(); break; }
+
+            System.out.println(
+                PRINT(
+                    RE(repl_env, input)
+                ) 
+            );
+            // try {
+            //     line = readline.readline(prompt);
+            //     if (line == null) { continue; }
+            // } catch (readline.EOFException e) {
+            //     break;
+            // } catch (IOException e) {
+            //     System.out.println("IOException: " + e.getMessage());
+            //     break;
+            // }
+            // try {
+            //     System.out.println(PRINT(RE(repl_env, line)));
+            // } catch (MalContinue e) {
+            //     continue;
+            // } catch (MalThrowable t) {
+            //     System.out.println("Error: " + t.getMessage());
+            //     continue;
+            // } catch (Throwable t) {
+            //     System.out.println("Uncaught " + t + ": " + t.getMessage());
+            //     continue;
+            // }
         }
     }
 }

@@ -1,4 +1,7 @@
 package mal;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Scanner;
 
 import mal.env.Env;
@@ -9,10 +12,12 @@ import mal.types.MalType;
 
 class step4_if_fn_do{
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException{
         Scanner scanner = new Scanner(System.in);
         Env eval_env = new Env(null, core.NS);
         
+        Files.lines(Paths.get(System.getProperty("user.dir"),"/impls/MyJavaImpl/src/mal/core.mal")).forEach(x->repl(x, eval_env));
+
         while(true){
             System.out.print("user> ");
 
@@ -35,8 +40,11 @@ class step4_if_fn_do{
     }
 
     private static MalType eval_ast(MalType ast, Env env){
-        if(ast.list_Q())
-            return ast.getMalList().map(x->EVAL(x, env));
+        if(ast.list_Q()){
+            MalList list = new MalList();
+            ast.getMalList().malTypes.forEach(x->list.add(EVAL(x, env)));
+            return list;
+        }
 
         else if(ast.symbol_Q())
             return env.get(ast.getMalSymbol());

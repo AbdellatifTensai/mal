@@ -38,8 +38,9 @@ class step2_eval{
 
     private static MalType eval_ast(MalType ast){
         if(ast.list_Q()){
-            ast.getMalList().map(step2_eval::EVAL);
-            return ast;
+            MalList list = new MalList();
+            ast.getMalList().malTypes.forEach(x->list.add(EVAL(x)));
+            return list;
         }
         else if(ast.symbol_Q()){
             return eval_env.get(ast.getMalSymbol().val);
