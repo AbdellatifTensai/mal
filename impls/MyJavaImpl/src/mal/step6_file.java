@@ -11,11 +11,13 @@ import mal.types.MalList;
 import mal.types.MalSymbol;
 import mal.types.MalType;
 
-class step5_tco{
+class step6_file{
 
     public static void main(String[] args) throws IOException{
         Scanner scanner = new Scanner(System.in);
         Env eval_env = new Env(null, core.NS);
+
+        eval_env.set(new MalSymbol("eval"), new IMalFunction(){ @Override public MalType apply(MalList arg){ return EVAL(arg.get(0), eval_env); } });
 
         Files.lines(Paths.get(System.getProperty("user.dir"),"/impls/MyJavaImpl/src/mal/core.mal")).forEach(x->repl(x, eval_env));
 
@@ -25,14 +27,14 @@ class step5_tco{
             String input = scanner.nextLine();
             if(input.equals("exit")){ scanner.close(); break; }
 
-            // try{
+            try{
                 System.out.println(
                     repl(input, eval_env)
                 );
-            // }
-            // catch(Exception e){
-            //     System.out.println(e);
-            // }
+            }
+            catch(Exception e){
+                System.out.println(e);
+            }
         }
     }
 
@@ -55,7 +57,7 @@ class step5_tco{
 
     private static MalType READ(String input){
         MalType output = reader.read_str(input);
-        System.out.println(output);
+        System.out.println(printer._pr_str(output.toString(), false));
         return output;
     }
 
@@ -83,7 +85,7 @@ class step5_tco{
                 break;
 
             case "do": //( do a b c d )
-                MalList do_args = ast.getMalList().subList(1, ast.getMalList().size()-2);
+                MalList do_args = ast.getMalList().subList(1, ast.getMalList().size()-1);
                 MalType do_last_arg = ast.getMalList().getLast();
                 eval_ast(do_args, env);
                 ast = do_last_arg;
@@ -117,6 +119,6 @@ class step5_tco{
     }
 
     private static String PRINT(MalType input){
-        return input.toString();
+        return printer._pr_str(input.toString(), false);
     }
 }

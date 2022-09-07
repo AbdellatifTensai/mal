@@ -1,11 +1,18 @@
 package mal;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import mal.types.IMalFunction;
+import mal.types.MalAtom;
 import mal.types.MalConst;
 import mal.types.MalInteger;
+import mal.types.MalList;
+import mal.types.MalString;
 import mal.types.MalSymbol;
 import mal.types.MalType;
 
@@ -16,20 +23,51 @@ public class core {
 
     public static final Map<MalType,IMalFunction> NS = new HashMap<>();
     static{
-        NS.put(new MalSymbol("+"),      args -> new MalInteger(args.getMalList().get(0).getInteger() + args.getMalList().get(1).getInteger())); 
-        NS.put(new MalSymbol("-"),      args -> new MalInteger(args.getMalList().get(0).getInteger() - args.getMalList().get(1).getInteger()));
-        NS.put(new MalSymbol("*"),      args -> new MalInteger(args.getMalList().get(0).getInteger() * args.getMalList().get(1).getInteger()));
-        NS.put(new MalSymbol("/"),      args -> new MalInteger(args.getMalList().get(0).getInteger() / args.getMalList().get(1).getInteger()));
-        NS.put(new MalSymbol("prn"),    args -> {System.out.println(args); return Nil;}                                                      );
-        NS.put(new MalSymbol("list"),   args -> args                                                                                         );
-        NS.put(new MalSymbol("list?"),  args -> args.get(0).list_Q()? True: False                                                            );
-        NS.put(new MalSymbol("empty?"), args -> args.getMalList().isEmpty()? True: False                                                     );
-        NS.put(new MalSymbol("count"),  args -> new MalInteger(args.get(0).getMalList().size())                                              );
-        NS.put(new MalSymbol("="),      args -> args.get(0).equals(args.get(1))? True: False                                                 );
-        NS.put(new MalSymbol("<"),      args -> args.get(0).getInteger() < args.get(1).getInteger()? True: False                             );
-        NS.put(new MalSymbol(">"),      args -> args.get(0).getInteger() > args.get(1).getInteger()? True: False                             );
-        NS.put(new MalSymbol("<="),     args -> args.get(0).getInteger() <= args.get(1).getInteger()? True: False                            );
-        NS.put(new MalSymbol(">="),     args -> args.get(0).getInteger() >= args.get(1).getInteger()? True: False                            );
+        NS.put(new MalSymbol("+"),           args -> new MalInteger(args.getMalList().get(0).getInteger() + args.getMalList().get(1).getInteger())); 
+        NS.put(new MalSymbol("-"),           args -> new MalInteger(args.getMalList().get(0).getInteger() - args.getMalList().get(1).getInteger()));
+        NS.put(new MalSymbol("*"),           args -> new MalInteger(args.getMalList().get(0).getInteger() * args.getMalList().get(1).getInteger()));
+        NS.put(new MalSymbol("/"),           args -> new MalInteger(args.getMalList().get(0).getInteger() / args.getMalList().get(1).getInteger()));
+        NS.put(new MalSymbol("prn"),         args -> {System.out.println(args); return Nil;}                                                      );
+        NS.put(new MalSymbol("list"),        args -> args                                                                                         );
+        NS.put(new MalSymbol("list?"),       args -> args.get(0).list_Q()? True: False                                                            );
+        NS.put(new MalSymbol("empty?"),      args -> args.getMalList().isEmpty()? True: False                                                     );
+        NS.put(new MalSymbol("count"),       args -> new MalInteger(args.get(0).getMalList().size())                                              );
+        NS.put(new MalSymbol("="),           args -> args.get(0).equals(args.get(1))? True: False                                                 );
+        NS.put(new MalSymbol("<"),           args -> args.get(0).getInteger() < args.get(1).getInteger()? True: False                             );
+        NS.put(new MalSymbol(">"),           args -> args.get(0).getInteger() > args.get(1).getInteger()? True: False                             );
+        NS.put(new MalSymbol("<="),          args -> args.get(0).getInteger() <= args.get(1).getInteger()? True: False                            );
+        NS.put(new MalSymbol(">="),          args -> args.get(0).getInteger() >= args.get(1).getInteger()? True: False                            );
+        NS.put(new MalSymbol("read-string"), args -> reader.read_str(args.get(0).getString())                                                     );
+        NS.put(new MalSymbol("atom"),        args -> new MalAtom(args.get(0))                                                                     );
+        NS.put(new MalSymbol("atom?"),       args -> args.get(0).atom_Q()? True: False                                                                   );
+        NS.put(new MalSymbol("deref"),       args -> args.get(0).getMalAtom().val                                                                 );
+        NS.put(new MalSymbol("reset!"),      args ->{args.get(0).getMalAtom().val = args.get(1); return args.get(1);}                            );   
+        
+        NS.put(new MalSymbol("str"),args-> new MalString(printer._pr_str(args.malTypes.stream().map(x->x.toString()).collect(Collectors.joining("")),false)));
+        NS.put(new MalSymbol("pr-str"),args-> new MalString(printer._pr_str(args.malTypes.stream().map(x->x.toString()).collect(Collectors.joining(" ")),true)));
+        NS.put(new MalSymbol("slurp"), args -> {
+                MalString str;
+                try{ str = new MalString(Files.lines(Paths.get(args.get(0).getString())).collect(Collectors.joining("\n"))); }
+                catch(IOException e){ System.out.println(e.getMessage()); str = new MalString(""); }
+                return str;
+            }
+        );
+        NS.put(new MalSymbol("swap!"), args ->{
+            MalAtom atom = args.get(0).getMalAtom();
+            IMalFunction f = args.get(1).getMalFunction();
+
+            if(!(args.size()>2)){
+                atom.val = f.apply(new MalList().add(atom.value()));
+                return atom;
+            }
+
+            MalList new_args = new MalList();
+            new_args.add(atom.value());
+            for(int x=2;x<args.size();x++) new_args.add(args.get(x));
+            atom.val = f.apply(new_args);
+            
+            return atom;
+        });
     }
 
         

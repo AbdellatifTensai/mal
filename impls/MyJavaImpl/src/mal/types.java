@@ -10,11 +10,13 @@ public class types {
     public static interface MalType{
         default boolean list_Q()             { return false;}
         default boolean symbol_Q()           { return false;}
+        default boolean atom_Q()             { return false;}
         default MalList getMalList()         { throw new RuntimeException("only MalList can implement this");    }
         default MalSymbol getMalSymbol()     { throw new RuntimeException("only MalSymbol can implement this");  }
         default IMalFunction getMalFunction(){ throw new RuntimeException("only MalFunction can implement this");}
         default String getString()           { throw new RuntimeException("only MalString can implement this");  }
         default int getInteger()             { throw new RuntimeException("only MalInteger can implement this"); }
+        default MalAtom getMalAtom()         { throw new RuntimeException("only MalAtom can implement this");    }
         default MalFunction getMalFunctionImpl(){ throw new RuntimeException("only THE MalFunction implementation of IMalFunction can call this");}
     }
 
@@ -94,7 +96,7 @@ public class types {
         String val;
         public MalString(String malString){ this.val = malString; }
         @Override
-        public String toString(){ return "(" + val + ")"; }
+        public String toString(){ return val; }
         @Override
         public String getString(){ return val; }
         @Override
@@ -111,7 +113,7 @@ public class types {
         public MalSymbol(String malSymbol) { this.val = malSymbol; }
 
         @Override
-        public String toString() { return "("+val+")"; }
+        public String toString() { return "\'"+val+"\'"; }
         @Override
         public boolean symbol_Q() { return true; }
         @Override
@@ -148,4 +150,14 @@ public class types {
         @Override
         public String toString(){ return "MalFunction"; }
     }
+
+    public static class MalAtom implements MalType{
+        MalType val;
+        public MalAtom(MalType val){ this.val = val; }
+        @Override public String toString(){ return "*"+this.val.toString(); }
+        @Override public boolean atom_Q(){ return true; }
+        @Override public MalAtom getMalAtom(){ return this; }
+        public MalType value(){ return this.val; }
+    }
+
 }
