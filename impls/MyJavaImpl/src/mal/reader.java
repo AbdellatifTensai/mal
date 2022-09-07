@@ -34,29 +34,29 @@ public class reader{
     }
 
     public static MalType read_form(Reader rdr){
-        char firstChar = rdr.peek().charAt(0);
         MalType form;
-        if(firstChar == '(')
-            form = read_list(rdr);
-        else
-            form = read_atom(rdr);
+        String token = rdr.peek();
+        if(token.equals(null)) throw new RuntimeException("no input available");
+
+        switch(token.charAt(0)){
+            case'\'': rdr.next(); return new MalList(core.QUOTE, read_form(rdr));
+            case '`': rdr.next(); return new MalList(core.QUASIQUOTE, read_form(rdr));
+            case '~': if (token.equals("~")){ rdr.next(); return new MalList(core.UNQUOTE, read_form(rdr)); }
+                      else{ rdr.next(); return new MalList(core.SPLICE_UNQUOTE, read_form(rdr)); }
+            case '@': rdr.next(); return new MalList(new MalSymbol("deref"), read_form(rdr));
+            case '(': form = read_list(rdr, new MalList()); break;
+            case ')': throw new RuntimeException("unexpected ')'");
+            default : form = read_atom(rdr); break;
+        }
         return form;
     }
 
-    public static MalType read_list(Reader rdr){
-        MalList list = new MalList();
-
+    public static MalList read_list(Reader rdr, MalList list){
         while(rdr.hasNext()){
             String token = rdr.next();
-
-            if(token == null)
-                throw new RuntimeException("expected ')' at"+rdr.pos+" instead of EOF");
-
-            else if(token.charAt(0) == ')')
-                break;
-
-            else
-                list.add(read_form(rdr));
+            if(token == null) throw new RuntimeException("expected ')' at"+rdr.pos+" instead of EOF");
+            else if(token.charAt(0) == ')') break;
+            else list.add(read_form(rdr));
         }
         return list;
     }

@@ -25,7 +25,8 @@ public class types {
 
         public MalList(){ this.malTypes = new ArrayList<>(); }
         public MalList(List<MalType> list){ this.malTypes = list; }
-        public MalList(MalList list){ this.malTypes = list.malTypes; }
+        public MalList(MalList list){ this.malTypes = new ArrayList<>(list.malTypes); }
+        public MalList(MalType... ms){ this.malTypes = new ArrayList<>(); for(MalType m:ms) malTypes.add(m);}
 
         MalType get(int i){
             MalType m;
@@ -36,6 +37,7 @@ public class types {
         MalType remove(int i)                   { return malTypes.remove(i); }
         boolean isEmpty()                       { return malTypes.isEmpty(); }
         MalList add(MalType m)                  { malTypes.add(m); return this;}
+        MalList add(int i, MalType m)           { malTypes.add(i, m); return this;}
         int     size()                          { return malTypes.size();}
         MalList subList(int a, int z)           { return new MalList(malTypes.subList(a, z));}
         MalType getLast()                       { return malTypes.get(malTypes.size() - 1); }
@@ -65,7 +67,7 @@ public class types {
         public MalInteger(int malInt) { this.val = malInt; }
 
         @Override
-        public String toString() { return "(" + val + ")"; }
+        public String toString() { return ""+val; }
         @Override
         public int getInteger(){ return val; }
 
