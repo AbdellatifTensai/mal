@@ -3,9 +3,7 @@ package mal;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -51,17 +49,34 @@ public class core {
         NS.put(new MalSymbol("atom?"),       args -> args.get(0).atom_Q()? True: False                                                            );
         NS.put(new MalSymbol("deref"),       args -> args.get(0).getMalAtom().val                                                                 );
         NS.put(new MalSymbol("reset!"),      args ->{args.get(0).getMalAtom().val = args.get(1); return args.get(1);}                             );   
-        NS.put(new MalSymbol("str"),         args -> new MalString(printer._pr_str(args.malTypes.stream().map(x->x.toString()).collect(Collectors.joining("")),false)));
-        NS.put(new MalSymbol("pr-str"),      args -> new MalString(printer._pr_str(args.malTypes.stream().map(x->x.toString()).collect(Collectors.joining(" ")),true)));
         NS.put(new MalSymbol("cons"),        args -> new MalList(args.get(1).getMalList()).add(0, args.get(0))                                    );
-        NS.put(new MalSymbol("nth"),         args -> args.get(0).getMalList().get(args.get(1).getInteger())                                       );
+        NS.put(new MalSymbol("nth"),         args -> args.get(0).getMalList().malTypes.get(args.get(1).getInteger())  /*don't bypass exception*/  );
         NS.put(new MalSymbol("first"),       args -> args.get(0).getMalList().get(0)                                                              ); 
         NS.put(new MalSymbol("rest"),        args -> args.get(0).getMalList().rest()                                                              );
+        NS.put(new MalSymbol("throw"),       args ->{throw new RuntimeException(args.get(0).getString());}                                        ); 
+        NS.put(new MalSymbol("nil?"),        args -> args.get(0).equals(Nil)? True: False                                                         );
+        NS.put(new MalSymbol("true?"),       args -> args.get(0).equals(True)? True: False                                                        );
+        NS.put(new MalSymbol("false?"),      args -> args.get(0).equals(False)? True: False                                                       );
+        NS.put(new MalSymbol("symbol?"),     args -> args.get(0).symbol_Q()? True: False                                                          );
+        NS.put(new MalSymbol("symbol"),      args -> new MalSymbol(args.get(0).getString())                                                       );
+        NS.put(new MalSymbol("keyword"),     args -> new MalSymbol(args.get(0).toString())                                                        );
+        NS.put(new MalSymbol("keyword?"),    args -> args.get(0).symbol_Q()? True: False                                                          );
+        NS.put(new MalSymbol("sequential?"), args -> args.get(0).list_Q()? True: False                                                      );
 
-        NS.put(new MalSymbol("concat"),      args -> {
-                List<MalType> list = new ArrayList<>();
-                for(int x=0;x<args.size();x++) list.addAll(args.get(x).getMalList().malTypes);
-                return new MalList(list);
+        NS.put(new MalSymbol("str"),         args -> new MalString(printer._pr_str(args.malTypes.stream().map(x->x.toString()).collect(Collectors.joining("")),false)));
+        NS.put(new MalSymbol("pr-str"),      args -> new MalString(printer._pr_str(args.malTypes.stream().map(x->x.toString()).collect(Collectors.joining(" ")),true)));
+        NS.put(new MalSymbol("map"),         args -> new MalList(args.get(1).getMalList().malTypes.stream().map(m->args.get(0).getMalFunction().apply(new MalList(m))).collect(Collectors.toList())));
+
+        NS.put(new MalSymbol("apply"), args -> {
+            MalList list = new MalList();
+            for(int x=1;x<args.size()-1;x++) list.add(args.get(x));
+            list.addAll(args.getLast().getMalList());
+            return args.get(0).getMalFunction().apply(list);
+        });
+        NS.put(new MalSymbol("concat"), args -> {
+                MalList list = new MalList();
+                for(int x=0;x<args.size();x++) list.addAll(args.get(x).getMalList());
+                return list;
         }); 
         NS.put(new MalSymbol("slurp"), args -> {
                 MalString str;

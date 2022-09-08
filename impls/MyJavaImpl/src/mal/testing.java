@@ -4,11 +4,22 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class testing {
     
     public static void main(String[] args) {
-        test4();
+        test5();
+    }
+
+    static void test5(){
+        int[] arr = {1,2,3,4};
+        List<Integer> list = new ArrayList<>();
+        for(int x=0;x<arr.length;x++) list.add(arr[x]);
+        list = list.stream().map(x->x+10).collect(Collectors.toList());
+        list.forEach(System.out::println);
+        System.out.println("---------------------");
+        Arrays.stream(arr).forEach(System.out::println);
     }
 
     static void test3(){

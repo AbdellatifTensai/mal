@@ -25,9 +25,9 @@ public class types {
         List<MalType> malTypes;
 
         public MalList()                  { this.malTypes = new ArrayList<>(); }
-        public MalList(List<MalType> list){ this.malTypes = new ArrayList<>(); for(MalType m:list)          malTypes.add(m); }
-        public MalList(MalList list)      { this.malTypes = new ArrayList<>(); for(MalType m:list.malTypes) malTypes.add(m); }
-        public MalList(MalType... ms)     { this.malTypes = new ArrayList<>(); for(MalType m:ms)            malTypes.add(m); }
+        public MalList(List<MalType> list){ this.malTypes = new ArrayList<>(list); }
+        public MalList(MalList list)      { this.malTypes = new ArrayList<>(list.malTypes);}
+        public MalList(MalType... ms)     { this.malTypes = new ArrayList<>(); for(MalType m:ms) malTypes.add(m); }
 
         MalType get(int i){
             try{ return malTypes.get(i); }
@@ -41,6 +41,7 @@ public class types {
         MalList subList(int a, int z)           { return new MalList(malTypes.subList(a, z));}
         MalType getLast()                       { return malTypes.get(malTypes.size() - 1); }
         MalList rest()                          { return new MalList(malTypes.subList(1, malTypes.size()));}
+        MalList addAll(MalList m)               { malTypes.addAll(m.malTypes); return this;}
 
         @Override
         public MalList getMalList(){ return this; }
@@ -83,7 +84,7 @@ public class types {
         String val;
         public MalConst(String malConst){ this.val = malConst; }
         @Override
-        public String toString() { return "("+val+")"; }
+        public String toString() { return val; }
         @Override
         public boolean equals(Object obj) {
             if(!(obj instanceof MalConst)) return false;
@@ -114,7 +115,7 @@ public class types {
         public MalSymbol(String malSymbol) { this.val = malSymbol; }
 
         @Override
-        public String toString() { return "\'"+val+"\'"; }
+        public String toString() { return val; }
         @Override
         public boolean symbol_Q() { return true; }
         @Override
@@ -132,8 +133,7 @@ public class types {
 
     public static interface IMalFunction extends MalType{
         MalType apply(MalList arguments);
-        @Override
-        default IMalFunction getMalFunction(){ return this; }
+        @Override default IMalFunction getMalFunction(){ return this; }
     }
 
     abstract public static class MalFunction implements IMalFunction{
@@ -164,6 +164,13 @@ public class types {
         @Override public boolean atom_Q(){ return true; }
         @Override public MalAtom getMalAtom(){ return this; }
         public MalType value(){ return this.val; }
+    }
+
+    public static class MalException implements MalType{
+        RuntimeException e;
+        public MalException(RuntimeException e){ this.e = e; }
+        @Override public String toString(){ return this.e.toString(); }
+        public String msg(){ return this.e.getMessage(); }
     }
 
 }
