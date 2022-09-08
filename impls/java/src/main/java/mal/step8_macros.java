@@ -1,17 +1,18 @@
 package mal;
 
-import java.io.IOException;
-
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
-import java.util.Iterator;
-import mal.types.*;
-import mal.readline;
-import mal.reader;
-import mal.printer;
+import java.util.Scanner;
+
 import mal.env.Env;
-import mal.core;
+import mal.types.MalFunction;
+import mal.types.MalHashMap;
+import mal.types.MalList;
+import mal.types.MalSymbol;
+import mal.types.MalThrowable;
+import mal.types.MalVal;
+import mal.types.MalVector;
 
 public class step8_macros {
     // read
@@ -230,11 +231,11 @@ public class step8_macros {
                 return EVAL(args.nth(0), repl_env);
             }
         });
-        MalList _argv = new MalList();
-        for (Integer i=1; i < args.length; i++) {
-            _argv.conj_BANG(new MalString(args[i]));
-        }
-        repl_env.set(new MalSymbol("*ARGV*"), _argv);
+        // MalList _argv = new MalList();
+        // for (Integer i=1; i < args.length; i++) {
+        //     _argv.conj_BANG(new MalString(args[i]));
+        // }
+        // repl_env.set(new MalSymbol("*ARGV*"), _argv);
 
 
         // core.mal: defined using the language itself
@@ -242,37 +243,45 @@ public class step8_macros {
         RE(repl_env, "(def! load-file (fn* (f) (eval (read-string (str \"(do \" (slurp f) \"\nnil)\")))))");
         RE(repl_env, "(defmacro! cond (fn* (& xs) (if (> (count xs) 0) (list 'if (first xs) (if (> (count xs) 1) (nth xs 1) (throw \"odd number of forms to cond\")) (cons 'cond (rest (rest xs)))))))");
         
-        Integer fileIdx = 0;
-        if (args.length > 0 && args[0].equals("--raw")) {
-            readline.mode = readline.Mode.JAVA;
-            fileIdx = 1;
-        }
-        if (args.length > fileIdx) {
-            RE(repl_env, "(load-file \"" + args[fileIdx] + "\")");
-            return;
-        }
+        // Integer fileIdx = 0;
+        // if (args.length > 0 && args[0].equals("--raw")) {
+        //     readline.mode = readline.Mode.JAVA;
+        //     fileIdx = 1;
+        // }
+        // if (args.length > fileIdx) {
+        //     RE(repl_env, "(load-file \"" + args[fileIdx] + "\")");
+        //     return;
+        // }
+        Scanner scanner = new Scanner(System.in);
         while (true) {
-            String line;
-            try {
-                line = readline.readline(prompt);
-                if (line == null) { continue; }
-            } catch (readline.EOFException e) {
-                break;
-            } catch (IOException e) {
-                System.out.println("IOException: " + e.getMessage());
-                break;
-            }
-            try {
-                System.out.println(PRINT(RE(repl_env, line)));
-            } catch (MalContinue e) {
-                continue;
-            } catch (MalThrowable t) {
-                System.out.println("Error: " + t.getMessage());
-                continue;
-            } catch (Throwable t) {
-                System.out.println("Uncaught " + t + ": " + t.getMessage());
-                continue;
-            }
+            System.out.print(prompt);
+            String input = scanner.nextLine();
+            if(input.equals("exit")){ scanner.close(); break; }
+
+            try{System.out.println(
+                PRINT(RE(repl_env, input)));}
+            catch(Exception e){ System.out.println(e); }
+            // String line;
+            // try {
+            //     line = readline.readline(prompt);
+            //     if (line == null) { continue; }
+            // } catch (readline.EOFException e) {
+            //     break;
+            // } catch (IOException e) {
+            //     System.out.println("IOException: " + e.getMessage());
+            //     break;
+            // }
+            // try {
+            //     System.out.println(PRINT(RE(repl_env, line)));
+            // } catch (MalContinue e) {
+            //     continue;
+            // } catch (MalThrowable t) {
+            //     System.out.println("Error: " + t.getMessage());
+            //     continue;
+            // } catch (Throwable t) {
+            //     System.out.println("Uncaught " + t + ": " + t.getMessage());
+            //     continue;
+            // }
         }
     }
 }

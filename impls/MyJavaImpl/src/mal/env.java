@@ -1,5 +1,6 @@
 package mal;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,13 +36,13 @@ public class env {
 
         Env find(MalType key){
             if(data.containsKey(key)) return this;
-            else if(!outer.equals(null)) return outer.find(key);
-            return null; 
+            else if(outer != null) return outer.find(key);
+            else return null; 
         }
 
         MalType get(MalType key){
             Env temp = find(key);
-            if(!temp.equals(null)) return temp.data.get(key);
+            if(temp != null) return temp.data.get(key);
             throw new RuntimeException("the key '"+key+"' was not found!");
         }
 

@@ -11,6 +11,7 @@ public class types {
         default boolean list_Q()             { return false;}
         default boolean symbol_Q()           { return false;}
         default boolean atom_Q()             { return false;}
+        default boolean function_Q()         { return false;}
         default MalList getMalList()         { throw new RuntimeException("only MalList can implement this");    }
         default MalSymbol getMalSymbol()     { throw new RuntimeException("only MalSymbol can implement this");  }
         default IMalFunction getMalFunction(){ throw new RuntimeException("only MalFunction can implement this");}
@@ -141,16 +142,21 @@ public class types {
         MalType params;
         MalType body;
         Env env;
+        boolean isMacro;
 
         public MalFunction(MalList ast, Env env){
             this.params = ast.get(1);
             this.body = ast.get(2);
             this.env = env;
+            this.isMacro = false;
         }
         @Override
         public MalFunction getMalFunctionImpl(){ return this; }
         @Override
         public String toString(){ return "MalFunction"; }
+        @Override
+        public boolean function_Q(){ return true; }
+        public MalFunction setMacro(){ this.isMacro = true; return this;}
     }
 
     public static class MalAtom implements MalType{
