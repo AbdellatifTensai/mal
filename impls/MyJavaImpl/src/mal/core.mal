@@ -1,3 +1,4 @@
+(defmacro! cond (fn* (& xs) (if (> (count xs) 0) (list 'if (first xs) (if (> (count xs) 1) (nth xs 1) (throw "odd number of forms to cond")) (cons 'cond (rest (rest xs)))))))
 (def! not (fn* (a) (if a false true)))
 (def! fact (fn* (n) (if (< n 2) 1 (* n ( fact (- n 1))))))
 (def! sum2 (fn* (n acc) (if (= n 0) acc (sum2 (- n 1) (+ n acc)))))

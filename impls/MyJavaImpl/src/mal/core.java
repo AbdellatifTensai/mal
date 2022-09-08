@@ -54,6 +54,9 @@ public class core {
         NS.put(new MalSymbol("str"),         args -> new MalString(printer._pr_str(args.malTypes.stream().map(x->x.toString()).collect(Collectors.joining("")),false)));
         NS.put(new MalSymbol("pr-str"),      args -> new MalString(printer._pr_str(args.malTypes.stream().map(x->x.toString()).collect(Collectors.joining(" ")),true)));
         NS.put(new MalSymbol("cons"),        args -> new MalList(args.get(1).getMalList()).add(0, args.get(0))                                    );
+        NS.put(new MalSymbol("nth"),         args -> args.get(0).getMalList().get(args.get(1).getInteger())                                       );
+        NS.put(new MalSymbol("first"),       args -> args.get(0).getMalList().get(0)                                                              ); 
+        NS.put(new MalSymbol("rest"),        args -> args.get(0).getMalList().rest()                                                              );
 
         NS.put(new MalSymbol("concat"),      args -> {
                 List<MalType> list = new ArrayList<>();

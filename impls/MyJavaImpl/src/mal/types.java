@@ -24,16 +24,14 @@ public class types {
     public static class MalList implements MalType{
         List<MalType> malTypes;
 
-        public MalList(){ this.malTypes = new ArrayList<>(); }
-        public MalList(List<MalType> list){ this.malTypes = list; }
-        public MalList(MalList list){ this.malTypes = new ArrayList<>(list.malTypes); }
-        public MalList(MalType... ms){ this.malTypes = new ArrayList<>(); for(MalType m:ms) malTypes.add(m);}
+        public MalList()                  { this.malTypes = new ArrayList<>(); }
+        public MalList(List<MalType> list){ this.malTypes = new ArrayList<>(); for(MalType m:list)          malTypes.add(m); }
+        public MalList(MalList list)      { this.malTypes = new ArrayList<>(); for(MalType m:list.malTypes) malTypes.add(m); }
+        public MalList(MalType... ms)     { this.malTypes = new ArrayList<>(); for(MalType m:ms)            malTypes.add(m); }
 
         MalType get(int i){
-            MalType m;
-            try{ m = malTypes.get(i); }
-            catch(IndexOutOfBoundsException e){ m = core.Nil;}
-            return m;
+            try{ return malTypes.get(i); }
+            catch(IndexOutOfBoundsException e){ return core.Nil;}
         }
         MalType remove(int i)                   { return malTypes.remove(i); }
         boolean isEmpty()                       { return malTypes.isEmpty(); }

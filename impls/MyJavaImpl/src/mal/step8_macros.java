@@ -18,9 +18,7 @@ class step8_macros{
         Env eval_env = new Env(null, core.NS);
 
         eval_env.set(new MalSymbol("eval"), new IMalFunction(){ @Override public MalType apply(MalList arg){ return EVAL(arg.get(0), eval_env); } });
-
-        Files.lines(Paths.get(System.getProperty("user.dir"),"/impls/MyJavaImpl/src/mal/core.mal")).forEach(x->
-        repl(x, eval_env));
+        Files.lines(Paths.get(System.getProperty("user.dir"),"/impls/MyJavaImpl/src/mal/core.mal")).forEach(x->repl(x, eval_env));
 
         while(true){
             System.out.print("user> ");

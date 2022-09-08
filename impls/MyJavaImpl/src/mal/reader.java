@@ -22,7 +22,7 @@ public class reader{
 
     public static String[] tokenize(String input){
         List<String> tokens = new LinkedList<>();
-        Pattern pattern = Pattern.compile("[\\s,]*(~@|[\\[\\]{}()'`~@]|\"(?:[\\\\].|[^\\\\\"])*\"?|;.*|[^\\s \\[\\]{}()'\"`~@,;]*)");
+        Pattern pattern = Pattern.compile("[\\s ,]*(~@|[\\[\\]{}()'`~@]|\"(?:[\\\\].|[^\\\\\"])*\"?|;.*|[^\\s \\[\\]{}()'\"`~@,;]*)");
         Matcher matcher = pattern.matcher(input);
 
         while(matcher.find()){
