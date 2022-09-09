@@ -1,33 +1,43 @@
 package mal;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Vector;
 
 import mal.env.Env;
 
 public class types {
 
     public static interface MalType{
-        default boolean list_Q()             { return false;}
-        default boolean symbol_Q()           { return false;}
-        default boolean atom_Q()             { return false;}
-        default boolean function_Q()         { return false;}
+        default boolean list_Q()             { return false; }
+        default boolean symbol_Q()           { return false; }
+        default boolean atom_Q()             { return false; }
+        default boolean function_Q()         { return false; }
+        default boolean sequential_Q()       { return false; }
+        default boolean hashmap_Q()          { return false; }
+        default boolean vector_Q()           { return false; }
+        default boolean number_Q()           { return false; }
+        default boolean string_Q()           { return false; }
         default MalList getMalList()         { throw new RuntimeException("only MalList can implement this");    }
         default MalSymbol getMalSymbol()     { throw new RuntimeException("only MalSymbol can implement this");  }
         default IMalFunction getMalFunction(){ throw new RuntimeException("only MalFunction can implement this");}
         default String getString()           { throw new RuntimeException("only MalString can implement this");  }
         default int getInteger()             { throw new RuntimeException("only MalInteger can implement this"); }
         default MalAtom getMalAtom()         { throw new RuntimeException("only MalAtom can implement this");    }
+        default MalHashMap getMap()          { throw new RuntimeException("only MalHashMap can implement this"); }
         default MalFunction getMalFunctionImpl(){ throw new RuntimeException("only THE MalFunction implementation of IMalFunction can call this");}
     }
 
     public static class MalList implements MalType{
+        String start = "(", end = ")";
         List<MalType> malTypes;
 
-        public MalList()                  { this.malTypes = new ArrayList<>(); }
-        public MalList(List<MalType> list){ this.malTypes = new ArrayList<>(list); }
-        public MalList(MalList list)      { this.malTypes = new ArrayList<>(list.malTypes);}
-        public MalList(MalType... ms)     { this.malTypes = new ArrayList<>(); for(MalType m:ms) malTypes.add(m); }
+        public MalList()                        { this.malTypes = new ArrayList<>(); }
+        public MalList(Collection<MalType> list){ this.malTypes = new ArrayList<>(list); }
+        public MalList(MalList list)            { this.malTypes = new ArrayList<>(list.malTypes);}
+        public MalList(MalType... ms)           { this.malTypes = new ArrayList<>(); for(MalType m:ms) malTypes.add(m); }
 
         MalType get(int i){
             try{ return malTypes.get(i); }
@@ -48,7 +58,9 @@ public class types {
         @Override
         public boolean list_Q(){ return true; }
         @Override
-        public String toString(){ return Arrays.toString(malTypes.toArray()); }
+        public boolean sequential_Q(){ return true; }
+        @Override
+        public String toString(){ return printer.printList(this, true, " , ", start, end); }
         @Override
         public boolean equals(Object obj) {
             if(!(obj instanceof MalList)) return false;
@@ -59,25 +71,55 @@ public class types {
             for(int x=0;x<size;x++) eq += malTypes.get(x).equals(l.malTypes.get(x)) ? 1: -1; 
             return eq == size; 
         }
-        
+    }
+
+    public static class MalVector extends MalList{
+        MalVector()                 { this.start = "["; this.end = "]"; this.malTypes = new Vector<>();           }
+        MalVector(MalList ms)       { this.start = "["; this.end = "]"; this.malTypes = new Vector<>(ms.malTypes);}
+        MalVector(List<MalType> ms) { this.start = "["; this.end = "]"; this.malTypes = new Vector<>(ms);         }
+        MalVector(MalType... ms)    { super(ms); this.start = "["; this.end = "]";                                }
+
+        MalVector subVector(int a, int b){ return new MalVector(malTypes.subList(a, b)); }
+
+        @Override public boolean list_Q() { return false; }
+        @Override public boolean vector_Q(){ return true; }
+        @Override public MalList getMalList(){ return this; }
+    }
+
+    public static class MalHashMap implements MalType{
+        Map<MalType,MalType> map;
+
+        MalHashMap()                        { this.map = new HashMap<>();              }
+        MalHashMap(MalHashMap map)          { this.map = new HashMap<>(map.map);       }
+        MalHashMap(MalList list)            { this.map = new HashMap<>(); assoc(list); }
+        MalHashMap(MalType... ms)           { this.map = new HashMap<>(); assoc(ms);   }
+
+        MalHashMap put(MalType k, MalType v) { this.map.put(k, v); return this;}
+        MalHashMap assoc(MalType... ms) { for(int x=0;x<ms.length;x+=2) map.put(ms[x], ms[x+1]);         return this; }
+        MalHashMap assoc(MalList ms)    { for(int x=0;x<ms.size();x+=2) map.put(ms.get(x), ms.get(x+1)); return this; }
+        MalHashMap dissoc(MalList ms)   { ms.malTypes.forEach(m -> this.map.remove(m)); return this;                  }
+        MalType get(MalType key)        { MalType k = map.get(key); return k != null? k: core.Nil; }
+        MalList keys(){ return new MalList(map.keySet());}
+        MalList vals(){ return new MalList(map.values());}
+        int size(){ return this.map.size(); }
+
+        @Override public String toString(){ return printer.printMap(this, false); }
+        @Override public boolean hashmap_Q(){ return true; }
+        @Override public MalHashMap getMap(){ return this; }
     }
 
     public static class MalInteger implements MalType{
         int val;
         public MalInteger(int malInt) { this.val = malInt; }
 
-        @Override
-        public String toString() { return ""+val; }
-        @Override
-        public int getInteger(){ return val; }
-
-        @Override
-        public boolean equals(Object obj) {
+        @Override public String toString()  { return ""+val;}
+        @Override public int getInteger()   { return val;   }
+        @Override public boolean number_Q() { return true;  }
+        @Override public boolean equals(Object obj) {
             if(!(obj instanceof MalInteger)) return false;
             MalInteger i = (MalInteger) obj;
             return this.val == i.val;
         }
-        
     }
 
     public static class MalConst implements MalType{
@@ -97,34 +139,27 @@ public class types {
     public static class MalString implements MalType{
         String val;
         public MalString(String malString){ this.val = malString; }
-        @Override
-        public String toString(){ return val; }
-        @Override
-        public String getString(){ return val; }
-        @Override
-        public boolean equals(Object obj) {
+
+        @Override public String toString()  { return val; }
+        @Override public String getString() { return val; }
+        @Override public boolean string_Q() { return true;}
+        @Override public int hashCode(){ return val.hashCode(); }
+        @Override public boolean equals(Object obj){
             if(!(obj instanceof MalString)) return false;
             MalString s = (MalString) obj;
             return this.val.equals(s.val);
         }
-        
     }
 
     public static class MalSymbol implements MalType{
         String val;
         public MalSymbol(String malSymbol) { this.val = malSymbol; }
 
-        @Override
-        public String toString() { return val; }
-        @Override
-        public boolean symbol_Q() { return true; }
-        @Override
-        public MalSymbol getMalSymbol() { return this; }
-        @Override
-        public int hashCode(){ return val.hashCode(); }
-
-        @Override
-        public boolean equals(Object obj) {
+        @Override public String toString() { return val; }
+        @Override public boolean symbol_Q() { return true; }
+        @Override public MalSymbol getMalSymbol() { return this; }
+        @Override public int hashCode(){ return val.hashCode(); }
+        @Override public boolean equals(Object obj) {
             if(!(obj instanceof MalSymbol)) return false;
             MalSymbol sym = (MalSymbol) obj;
             return this.val.equals(sym.val);

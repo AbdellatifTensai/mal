@@ -51,7 +51,7 @@ class step7_quote{
 
     private static MalType READ(String input){
         MalType output = reader.read_str(input);
-        System.out.println(printer._pr_str(output.toString(), false));
+        System.out.println(printer._pr_str(output, false));
         return output;
     }
 
@@ -140,6 +140,6 @@ class step7_quote{
     }
 
     private static String PRINT(MalType input){
-        return printer._pr_str(input.toString(), false);
+        return printer._pr_str(input, false);
     }
 }

@@ -8,9 +8,11 @@ import mal.env.Env;
 import mal.types.IMalFunction;
 import mal.types.MalException;
 import mal.types.MalFunction;
+import mal.types.MalHashMap;
 import mal.types.MalList;
 import mal.types.MalSymbol;
 import mal.types.MalType;
+import mal.types.MalVector;
 
 class step9_try{
 
@@ -37,12 +39,16 @@ class step9_try{
     }
 
     private static MalType eval_ast(MalType ast, Env env){
-        if(ast.list_Q()){
-            MalList list = new MalList();
+        if(ast.sequential_Q()){
+            MalList list = ast.list_Q()? new MalList(): new MalVector();
             ast.getMalList().malTypes.forEach(x -> list.add(EVAL(x, env)));
             return list;
         }
-
+        else if(ast.hashmap_Q()){
+            MalHashMap map = new MalHashMap();
+            ast.getMap().map.forEach((k,v)-> map.put(k, EVAL(v, env)));
+            return map;
+        }
         else if(ast.symbol_Q())
             return env.get(ast.getMalSymbol());
 
@@ -51,7 +57,6 @@ class step9_try{
 
     private static MalType READ(String input){
         MalType output = reader.read_str(input);
-        System.out.println(printer._pr_str(output.toString(), false));
         return output;
     }
 
@@ -141,8 +146,8 @@ class step9_try{
     }
 
     private static MalType quasiquote(MalType ast){
-        if(ast.symbol_Q()) return new MalList(core.QUOTE, ast);
-        if(!ast.list_Q()) return ast;
+        if(ast.symbol_Q() || ast.hashmap_Q()) return new MalList(core.QUOTE, ast);
+        if(!ast.sequential_Q()) return ast;
 
         MalList list = ast.getMalList();
         if(list.get(0).equals(core.UNQUOTE)) return list.get(1);
@@ -155,11 +160,12 @@ class step9_try{
             else
                 result = new MalList(core.CONS, quasiquote(elt), result);
         }
-        return result;
+
+        return ast.vector_Q()? new MalList(core.Vec, result): result;
     }
 
     private static boolean isMacroCall(MalType ast, Env env){
-        if(!ast.list_Q()) return false;
+        if(!ast.sequential_Q()) return false;
 
         MalType key = ast.getMalList().get(0);
         if(env.find(key) == null) return false;
@@ -178,6 +184,6 @@ class step9_try{
     }
 
     private static String PRINT(MalType input){
-        return printer._pr_str(input.toString(), false);
+        return printer._pr_str(input, true);
     }
 }

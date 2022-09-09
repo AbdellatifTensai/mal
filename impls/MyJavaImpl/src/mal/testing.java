@@ -6,13 +6,22 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
-public class testing {
+final class testing {
     
     public static void main(String[] args) {
-        test5();
+        test6();
     }
 
-    static void test5(){
+    private static void test6(){
+        List<Integer> list = Arrays.asList(1,2,3,4);
+        StringBuilder s = new StringBuilder();
+        list.forEach(s::append);
+        System.out.println(s);
+        System.out.println("--------------------------------------");
+        System.out.println(list);
+    }
+
+    private static void test5(){
         int[] arr = {1,2,3,4};
         List<Integer> list = new ArrayList<>();
         for(int x=0;x<arr.length;x++) list.add(arr[x]);
@@ -22,7 +31,7 @@ public class testing {
         Arrays.stream(arr).forEach(System.out::println);
     }
 
-    static void test3(){
+    private static void test3(){
         Dummy dummy1 = new Dummy(){ @Override public Dummy apply(){ System.out.println("hi dummy1"); return this; }}; 
         Dummy dummy2 = new Dummy(){ @Override public Dummy apply(){ return this; }}; 
 
@@ -30,7 +39,7 @@ public class testing {
         dummy2.apply().then(()-> {System.out.println("orElse dummy2"); return dummy2;});
     }
 
-    static void test4(){
+    private static void test4(){
         Dommy dommy1 = new Dommy(){ @Override public Dommy apply(){ System.out.println("hi dommy1"); applied=true; return this; }}; 
         Dommy dommy2 = new Dommy(){ @Override public Dommy apply(){ return this; }}; 
 
@@ -38,18 +47,18 @@ public class testing {
         dommy2.apply().orElse(new Dommy(){ @Override Dommy apply(){ System.out.println("orElse dommy2"); return this; }});
     }
 
-    abstract static class Dommy{
+    private abstract static class Dommy{
         boolean applied;
         Dommy apply(){ applied = false; return this;}
         void orElse(Dommy func){ if(!applied) func.apply(); }
     }
 
-    interface Dummy{
+    private interface Dummy{
         Dummy apply();
         default void then(Dummy func){ func.apply(); }
     }
 
-    static void test2(){
+    private static void test2(){
         List<Integer> list = new ArrayList<>();
         List<Integer> list2 = Arrays.asList(1);
         list.add(2);
@@ -58,7 +67,7 @@ public class testing {
         System.out.println(list2);
     }
 
-    static void test1(){
+    private static void test1(){
         Scanner scanner = new Scanner(System.in);
         while(true){
             String str = scanner.nextLine();

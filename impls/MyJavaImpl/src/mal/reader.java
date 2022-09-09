@@ -4,15 +4,15 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import mal.types.MalHashMap;
 import mal.types.MalInteger;
 import mal.types.MalList;
 import mal.types.MalString;
 import mal.types.MalSymbol;
 import mal.types.MalType;
+import mal.types.MalVector;
 
 public class reader{
-
-    private reader(){ throw new RuntimeException("not supposed to be instansiated"); }
 
     public static MalType read_str(String input){
         String[] tokens = tokenize(input);
@@ -44,18 +44,22 @@ public class reader{
             case '~': if (token.equals("~")){ rdr.next(); return new MalList(core.UNQUOTE, read_form(rdr)); }
                       else{ rdr.next(); return new MalList(core.SPLICE_UNQUOTE, read_form(rdr)); }
             case '@': rdr.next(); return new MalList(new MalSymbol("deref"), read_form(rdr));
-            case '(': form = read_list(rdr, new MalList()); break;
+            case '(': form = read_list(rdr, new MalList(), '(', ')'); break;
             case ')': throw new RuntimeException("unexpected ')'");
+            case '[': form = read_list(rdr, new MalVector(), '[' , ']'); break;
+            case ']': throw new RuntimeException("unexpected ']'");
+            case '{': form = new MalHashMap(read_list(rdr, new MalList(), '{', '}')); break;
+            case '}': throw new RuntimeException("unexpected '}'");
             default : form = read_atom(rdr); break;
         }
         return form;
     }
 
-    public static MalList read_list(Reader rdr, MalList list){
+    public static MalList read_list(Reader rdr, MalList list, char start, char end){
         while(rdr.hasNext()){
             String token = rdr.next();
-            if(token == null) throw new RuntimeException("expected ')' at"+rdr.pos+" instead of EOF");
-            else if(token.charAt(0) == ')') break;
+            if(token == null) throw new RuntimeException("expected '"+end+"' instead of EOF");
+            else if(token.charAt(0) == end) break;
             else list.add(read_form(rdr));
         }
         return list;
@@ -81,12 +85,10 @@ public class reader{
 
     private static class Reader{
         String[] tokens;
-        int pos;
         int index;
 
         Reader(String[] tokens, int pos){
             this.tokens = tokens;
-            this.pos = pos;
             this.index = 0;
         }
 

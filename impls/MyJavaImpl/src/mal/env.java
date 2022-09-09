@@ -1,6 +1,5 @@
 package mal;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -17,7 +16,12 @@ public class env {
         public Env(Env outer, MalList binds, MalList expres) {
             this.outer = outer;
             this.data = new HashMap<>();
-            for(int x=0;x<binds.size();x++) data.put(binds.get(x), expres.get(x));
+            for(int x=0;x<binds.size();x++){
+                if(binds.get(x).toString().charAt(0)=='&'){
+                    data.put(binds.get(x+1), expres.subList(x, expres.size())); break;
+                }
+                else data.put(binds.get(x), expres.get(x));
+            }
         }
 
         public Env(Env outer) {
