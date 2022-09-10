@@ -76,7 +76,7 @@ public class reader{
         else if(matcher.group(3) != null) return core.Nil;
         else if(matcher.group(4) != null) return core.True;
         else if(matcher.group(5) != null) return core.False;
-        else if((newToken = matcher.group(6)) != null) return new MalString(newToken);
+        else if((newToken = matcher.group(6)) != null) return new MalString(printer.escape(newToken));
         else if(matcher.group(7) != null) throw new RuntimeException("expected '\"', got EOF");
         else if((newToken=matcher.group(8)) != null) return new MalString("\u029e"+newToken);
         else if((newToken=matcher.group(9)) != null) return new MalSymbol(newToken);

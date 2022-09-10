@@ -9,7 +9,13 @@ import java.util.stream.Collectors;
 final class testing {
     
     public static void main(String[] args) {
-        test6();
+        test7();
+    }
+
+    private static void test7(){
+        List<Integer> list = Arrays.asList(1,2,3,4);
+        list.stream().skip(2).collect(Collectors.toList()).forEach(System.out::println);;
+
     }
 
     private static void test6(){

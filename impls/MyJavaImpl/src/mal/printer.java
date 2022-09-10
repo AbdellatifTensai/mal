@@ -1,5 +1,6 @@
 package mal;
 
+import java.util.Iterator;
 import java.util.Map.Entry;
 
 import mal.types.MalHashMap;
@@ -31,15 +32,19 @@ class printer {
     }
 
     public static String printMap(MalHashMap map, boolean print_readably){
-        StringBuilder s = new StringBuilder();
-        s.append("{");
-        for(Entry<MalType,MalType> e: map.map.entrySet()){
-            s.append(_pr_str(e.getKey(), print_readably));
-            s.append(" ");
-            s.append(_pr_str(e.getValue(), print_readably));
+        Iterator<Entry<MalType,MalType>> i = map.map.entrySet().iterator();
+        if (!i.hasNext()) return "{}";
+
+        StringBuilder sb = new StringBuilder();
+        sb.append('{');
+        for (;;) {
+            Entry<MalType,MalType> e = i.next();
+            sb.append(_pr_str(e.getKey(), print_readably));
+            sb.append(" ");
+            sb.append(_pr_str(e.getValue(), print_readably));
+            if (!i.hasNext()) return sb.append("}").toString();
+            sb.append(' ');
         }
-        s.append("}");
-        return s.toString();
     }
 
     public static String printList(MalList list, boolean print_readably, String delim, String start, String end){

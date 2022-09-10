@@ -2,7 +2,9 @@ package mal;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 import mal.env.Env;
 import mal.types.IMalFunction;
@@ -10,6 +12,7 @@ import mal.types.MalException;
 import mal.types.MalFunction;
 import mal.types.MalHashMap;
 import mal.types.MalList;
+import mal.types.MalString;
 import mal.types.MalSymbol;
 import mal.types.MalType;
 import mal.types.MalVector;
@@ -21,7 +24,14 @@ class step9_try{
         Env eval_env = new Env(null, core.NS);
 
         eval_env.set(new MalSymbol("eval"), new IMalFunction(){ @Override public MalType apply(MalList arg){ return EVAL(arg.get(0), eval_env); } });
+
         Files.lines(Paths.get(System.getProperty("user.dir"),"/impls/MyJavaImpl/src/mal/core.mal")).forEach(x->repl(x, eval_env));
+
+        if(args.length > 0){
+            MalList argv = new MalList(Arrays.stream(args).skip(1).map(MalString::new).collect(Collectors.toList()));
+            eval_env.set(new MalSymbol("*ARGV*"), argv);
+            repl("(load-file \""+args[0]+"\")", eval_env);
+        }
 
         while(true){
             System.out.print("user> ");

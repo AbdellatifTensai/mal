@@ -20,9 +20,9 @@ import mal.types.MalVector;
 
 public class core {
 
-    public static final MalConst Nil             = new MalConst("Nil");
-    public static final MalConst True            = new MalConst("True");
-    public static final MalConst False           = new MalConst("False");
+    public static final MalConst Nil             = new MalConst("nil");
+    public static final MalConst True            = new MalConst("true");
+    public static final MalConst False           = new MalConst("false");
     public static final MalSymbol QUOTE          = new MalSymbol("quote");
     public static final MalSymbol UNQUOTE        = new MalSymbol("unquote");
     public static final MalSymbol SPLICE_UNQUOTE = new MalSymbol("splice-unquote");

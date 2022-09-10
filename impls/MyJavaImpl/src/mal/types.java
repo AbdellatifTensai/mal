@@ -125,10 +125,8 @@ public class types {
     public static class MalConst implements MalType{
         String val;
         public MalConst(String malConst){ this.val = malConst; }
-        @Override
-        public String toString() { return val; }
-        @Override
-        public boolean equals(Object obj) {
+        @Override public String toString() { return val; }
+        @Override public boolean equals(Object obj) {
             if(!(obj instanceof MalConst)) return false;
             MalConst c = (MalConst) obj;
             return this.val.equals(c.val);
